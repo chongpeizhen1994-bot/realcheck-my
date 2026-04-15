@@ -4,66 +4,120 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RealCheck MY | Reviews for Places & Services in Malaysia</title>
+
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f8fafc;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        text-align: center;
-    }
-    .container {
-        max-width: 500px;
-        background: white;
-        padding: 40px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    }
-    h1 {
-        font-size: 32px;
-        margin-bottom: 10px;
-    }
-    h2 {
-        font-size: 18px;
-        color: #555;
-        margin-bottom: 20px;
-    }
-    p {
-        color: #666;
-        margin-bottom: 30px;
-    }
-    input {
-        width: 80%;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        margin-bottom: 15px;
-    }
-    button {
-        padding: 12px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 16px;
-        background-color: #111;
-        color: white;
-    }
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f8fafc;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+input {
+    padding: 10px;
+    width: 60%;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: black;
+    color: white;
+    cursor: pointer;
+}
+
+.categories {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+}
+
+.category {
+    background: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.list {
+    margin-top: 30px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
 </style>
 </head>
+
 <body>
 
 <div class="container">
-    <h1>RealCheck MY</h1>
-    <h2>Find trusted reviews for places & services in Malaysia</h2>
-    <p>From food to beauty, wellness and more — discover what’s worth your time and money.</p>
 
-    <input type="email" placeholder="Enter your email for early access">
-    <br>
-    <button>Join Early Access</button>
+<h1>RealCheck MY</h1>
+<p class="subtitle">Find trusted reviews for places & services in Malaysia</p>
+
+<div class="search-box">
+    <input placeholder="Search food, beauty, massage...">
+    <button>Search</button>
+</div>
+
+<div class="categories">
+    <div class="category">🍜 Food</div>
+    <div class="category">💅 Beauty</div>
+    <div class="category">💆 Wellness</div>
+    <div class="category">💇 Hair</div>
+</div>
+
+<div class="list">
+    <h3>Popular Places</h3>
+
+    <div class="card">
+        <b>Ah Ming Curry Mee</b><br>
+        ⭐ 4.3 | RM12<br>
+        <small>Good for quick lunch</small>
+    </div>
+
+    <div class="card">
+        <b>Relax Spa JB</b><br>
+        ⭐ 4.5 | RM90<br>
+        <small>Clean and comfortable</small>
+    </div>
+
+    <div class="card">
+        <b>Glow Beauty Facial</b><br>
+        ⭐ 4.0 | RM120<br>
+        <small>Good service, slight upselling</small>
+    </div>
+
+</div>
+
 </div>
 
 </body>
