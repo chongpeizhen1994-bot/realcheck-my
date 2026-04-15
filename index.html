@@ -7,25 +7,23 @@
 <style>
 body { margin:0; font-family:Arial; background:#f6f7f9; }
 
-/* NAV */
 .nav {
   background:white;
   padding:15px 30px;
   display:flex;
   justify-content:space-between;
-  box-shadow:0 2px 6px rgba(0,0,0,0.05);
 }
 
 .logo { font-weight:bold; font-size:20px; }
 
 .search {
   padding:10px;
-  width:300px;
+  width:250px;
   border-radius:20px;
   border:1px solid #ddd;
 }
 
-/* CATEGORY */
+/* 分类 */
 .categories {
   display:flex;
   gap:10px;
@@ -36,9 +34,14 @@ body { margin:0; font-family:Arial; background:#f6f7f9; }
   background:white;
   padding:10px 15px;
   border-radius:20px;
+  cursor:pointer;
 }
 
-/* LIST */
+.cat.active {
+  border:2px solid red;
+}
+
+/* 内容 */
 .container { padding:20px; max-width:900px; margin:auto; }
 
 .card {
@@ -48,26 +51,23 @@ body { margin:0; font-family:Arial; background:#f6f7f9; }
   border-radius:12px;
 }
 
-.rating { color:orange; }
-
-/* BUTTON */
+/* 按钮 */
 button {
-  padding:12px;
+  padding:10px;
   border:none;
   border-radius:10px;
   background:black;
   color:white;
-  cursor:pointer;
 }
 
-/* FLOAT BTN */
+/* 浮动 */
 .float {
   position:fixed;
   bottom:20px;
   right:20px;
 }
 
-/* MODAL */
+/* 弹窗 */
 .modal {
   position:fixed;
   top:0; left:0;
@@ -88,10 +88,9 @@ button {
 
 .close {
   position:absolute;
-  top:10px;
   right:10px;
+  top:10px;
   cursor:pointer;
-  font-weight:bold;
 }
 
 input, select {
@@ -106,14 +105,15 @@ input, select {
 
 <div class="nav">
   <div class="logo">RealCheck MY</div>
-  <input class="search" id="search" placeholder="Search..." oninput="filter()">
+  <input id="search" class="search" placeholder="Search..." oninput="applyFilter()">
 </div>
 
 <div class="categories">
-  <div class="cat">🍜 Food</div>
-  <div class="cat">💅 Beauty</div>
-  <div class="cat">💆 Wellness</div>
-  <div class="cat">💇 Hair</div>
+  <div class="cat active" onclick="setCategory('All', this)">All</div>
+  <div class="cat" onclick="setCategory('Food', this)">🍜 Food</div>
+  <div class="cat" onclick="setCategory('Beauty', this)">💅 Beauty</div>
+  <div class="cat" onclick="setCategory('Wellness', this)">💆 Wellness</div>
+  <div class="cat" onclick="setCategory('Hair', this)">💇 Hair</div>
 </div>
 
 <div class="container">
@@ -131,6 +131,13 @@ input, select {
     <h3>Add Review</h3>
     <input id="name" placeholder="Place name">
     <input id="comment" placeholder="Review">
+
+    <select id="category">
+      <option>Food</option>
+      <option>Beauty</option>
+      <option>Wellness</option>
+      <option>Hair</option>
+    </select>
 
     <select id="rating">
       <option value="5">⭐⭐⭐⭐⭐</option>
@@ -161,61 +168,71 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let allData = [];
+let currentCategory = "All";
 
-// 打开
-window.openForm = function() {
-  document.getElementById("modal").style.display = "flex";
+/* 打开关闭 */
+window.openForm = ()=> modal.style.display="flex";
+window.closeForm = ()=> modal.style.display="none";
+
+/* 点击外面关闭 */
+window.onclick = e=>{
+  if(e.target.id==="modal") closeForm();
 }
 
-// 关闭
-window.closeForm = function() {
-  document.getElementById("modal").style.display = "none";
+/* ESC关闭 */
+window.onkeydown = e=>{
+  if(e.key==="Escape") closeForm();
 }
 
-// 点击外面关闭
-window.onclick = function(e){
-  let modal = document.getElementById("modal");
-  if(e.target === modal){
-    modal.style.display = "none";
-  }
-}
-
-// ESC关闭
-window.onkeydown = function(e){
-  if(e.key === "Escape"){
-    closeForm();
-  }
-}
-
-window.addReview = async function() {
-  let name = document.getElementById("name").value;
-  let comment = document.getElementById("comment").value;
-  let rating = document.getElementById("rating").value;
+/* 添加评论 */
+window.addReview = async ()=>{
+  let name = nameInput.value;
+  let comment = commentInput.value;
+  let category = categoryInput.value;
+  let rating = ratingInput.value;
 
   if(!name || !comment) return;
 
-  await addDoc(collection(db, "reviews"), {
-    name,
-    comment,
-    rating: Number(rating)
+  await addDoc(collection(db,"reviews"),{
+    name, comment,
+    category,
+    rating:Number(rating)
   });
 
-  // 清空输入
-  document.getElementById("name").value = "";
-  document.getElementById("comment").value = "";
-
-  // 关闭弹窗 💣
+  nameInput.value="";
+  commentInput.value="";
   closeForm();
-
   loadReviews();
 }
 
+/* 分类点击 */
+window.setCategory = function(cat, el){
+  currentCategory = cat;
+
+  document.querySelectorAll(".cat").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+
+  applyFilter();
+}
+
+/* 搜索+分类一起 */
+window.applyFilter = function(){
+  let q = search.value.toLowerCase();
+
+  let filtered = allData.filter(d=>{
+    let matchText = d.name.toLowerCase().includes(q);
+    let matchCat = currentCategory==="All" || !d.category || d.category===currentCategory;
+    return matchText && matchCat;
+  });
+
+  render(filtered);
+}
+
+/* 渲染 */
 function render(data){
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+  list.innerHTML="";
 
   let grouped = {};
-
   data.forEach(d=>{
     if(!grouped[d.name]) grouped[d.name]=[];
     grouped[d.name].push(d);
@@ -223,34 +240,25 @@ function render(data){
 
   for(let name in grouped){
     let items = grouped[name];
-
-    let avg = items.reduce((a,b)=>a+b.rating,0)/items.length;
-    avg = avg.toFixed(1);
+    let avg = (items.reduce((a,b)=>a+b.rating,0)/items.length).toFixed(1);
 
     let div = document.createElement("div");
     div.className="card";
-
     div.innerHTML = `
       <b>${name}</b><br>
-      ⭐ ${avg} (${items.length} reviews)
+      ⭐ ${avg} (${items.length})
       <br><br>
       ${items.map(i=>`- ${i.comment}`).join("<br>")}
     `;
-
     list.appendChild(div);
   }
 }
 
+/* 加载 */
 async function loadReviews(){
-  const snap = await getDocs(collection(db,"reviews"));
+  let snap = await getDocs(collection(db,"reviews"));
   allData = snap.docs.map(d=>d.data());
-  render(allData);
-}
-
-window.filter = function(){
-  let q = document.getElementById("search").value.toLowerCase();
-  let filtered = allData.filter(d=>d.name.toLowerCase().includes(q));
-  render(filtered);
+  applyFilter();
 }
 
 loadReviews();
