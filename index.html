@@ -36,7 +36,6 @@ body { margin:0; font-family:Arial; background:#f6f7f9; }
   background:white;
   padding:10px 15px;
   border-radius:20px;
-  cursor:pointer;
 }
 
 /* LIST */
@@ -84,6 +83,15 @@ button {
   padding:20px;
   border-radius:10px;
   width:300px;
+  position:relative;
+}
+
+.close {
+  position:absolute;
+  top:10px;
+  right:10px;
+  cursor:pointer;
+  font-weight:bold;
 }
 
 input, select {
@@ -118,10 +126,12 @@ input, select {
 
 <div class="modal" id="modal">
   <div class="box">
+    <div class="close" onclick="closeForm()">✖</div>
+
     <h3>Add Review</h3>
     <input id="name" placeholder="Place name">
     <input id="comment" placeholder="Review">
-    
+
     <select id="rating">
       <option value="5">⭐⭐⭐⭐⭐</option>
       <option value="4">⭐⭐⭐⭐</option>
@@ -152,8 +162,29 @@ const db = getFirestore(app);
 
 let allData = [];
 
+// 打开
 window.openForm = function() {
   document.getElementById("modal").style.display = "flex";
+}
+
+// 关闭
+window.closeForm = function() {
+  document.getElementById("modal").style.display = "none";
+}
+
+// 点击外面关闭
+window.onclick = function(e){
+  let modal = document.getElementById("modal");
+  if(e.target === modal){
+    modal.style.display = "none";
+  }
+}
+
+// ESC关闭
+window.onkeydown = function(e){
+  if(e.key === "Escape"){
+    closeForm();
+  }
 }
 
 window.addReview = async function() {
@@ -169,7 +200,13 @@ window.addReview = async function() {
     rating: Number(rating)
   });
 
-  document.getElementById("modal").style.display = "none";
+  // 清空输入
+  document.getElementById("name").value = "";
+  document.getElementById("comment").value = "";
+
+  // 关闭弹窗 💣
+  closeForm();
+
   loadReviews();
 }
 
