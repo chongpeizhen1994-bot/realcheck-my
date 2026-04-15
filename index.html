@@ -5,69 +5,50 @@
 <title>RealCheck MY</title>
 
 <style>
-body { margin:0; font-family:Arial; background:#f6f7f9; }
+body { margin:0; font-family:Arial; background:#f5f6f8; }
 
+/* NAV */
 .nav {
   background:white;
-  padding:15px 30px;
+  padding:15px;
   display:flex;
   justify-content:space-between;
 }
 
-.logo { font-weight:bold; font-size:20px; }
-
 .search {
-  padding:10px;
-  width:250px;
+  padding:8px;
   border-radius:20px;
   border:1px solid #ddd;
 }
 
-/* 分类 */
+/* CATEGORY */
 .categories {
   display:flex;
   gap:10px;
-  padding:20px;
+  padding:15px;
 }
 
 .cat {
   background:white;
-  padding:10px 15px;
+  padding:8px 12px;
   border-radius:20px;
   cursor:pointer;
 }
 
-.cat.active {
-  border:2px solid red;
-}
+.active { border:2px solid red; }
 
-/* 内容 */
-.container { padding:20px; max-width:900px; margin:auto; }
+/* LIST */
+.container { padding:20px; }
 
 .card {
   background:white;
   padding:15px;
-  margin-bottom:15px;
-  border-radius:12px;
-}
-
-/* 按钮 */
-button {
-  padding:10px;
-  border:none;
+  margin-bottom:10px;
   border-radius:10px;
-  background:black;
-  color:white;
+  cursor:pointer;
 }
 
-/* 浮动 */
-.float {
-  position:fixed;
-  bottom:20px;
-  right:20px;
-}
-
-/* 弹窗 */
+/* MODAL */
 .modal {
   position:fixed;
   top:0; left:0;
@@ -83,19 +64,20 @@ button {
   padding:20px;
   border-radius:10px;
   width:300px;
-  position:relative;
 }
 
-.close {
-  position:absolute;
-  right:10px;
-  top:10px;
-  cursor:pointer;
+button {
+  padding:10px;
+  border:none;
+  background:black;
+  color:white;
+  border-radius:8px;
+  margin-top:5px;
 }
 
 input, select {
   width:100%;
-  padding:10px;
+  padding:8px;
   margin:5px 0;
 }
 </style>
@@ -104,30 +86,26 @@ input, select {
 <body>
 
 <div class="nav">
-  <div class="logo">RealCheck MY</div>
+  <b>RealCheck MY</b>
   <input id="search" class="search" placeholder="Search..." oninput="applyFilter()">
 </div>
 
 <div class="categories">
-  <div class="cat active" onclick="setCategory('All', this)">All</div>
-  <div class="cat" onclick="setCategory('Food', this)">🍜 Food</div>
-  <div class="cat" onclick="setCategory('Beauty', this)">💅 Beauty</div>
-  <div class="cat" onclick="setCategory('Wellness', this)">💆 Wellness</div>
-  <div class="cat" onclick="setCategory('Hair', this)">💇 Hair</div>
+  <div class="cat active" onclick="setCat('All',this)">All</div>
+  <div class="cat" onclick="setCat('Food',this)">Food</div>
+  <div class="cat" onclick="setCat('Beauty',this)">Beauty</div>
 </div>
 
-<div class="container">
-  <div id="list"></div>
-</div>
+<div class="container" id="list"></div>
 
-<div class="float">
-  <button onclick="openForm()">+ Review</button>
-</div>
+<!-- DETAIL PAGE -->
+<div class="container" id="detail" style="display:none"></div>
 
+<button style="position:fixed;bottom:20px;right:20px" onclick="openForm()">+ Review</button>
+
+<!-- FORM -->
 <div class="modal" id="modal">
   <div class="box">
-    <div class="close" onclick="closeForm()">✖</div>
-
     <h3>Add Review</h3>
     <input id="name" placeholder="Place name">
     <input id="comment" placeholder="Review">
@@ -135,8 +113,6 @@ input, select {
     <select id="category">
       <option>Food</option>
       <option>Beauty</option>
-      <option>Wellness</option>
-      <option>Hair</option>
     </select>
 
     <select id="rating">
@@ -158,110 +134,118 @@ import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.c
 const firebaseConfig = {
   apiKey: "AIzaSyAyhdcyUeUB9lNehaUPjSSFBxM04pJx36k",
   authDomain: "realcheck-my.firebaseapp.com",
-  projectId: "realcheck-my",
-  storageBucket: "realcheck-my.firebasestorage.app",
-  messagingSenderId: "29493644662",
-  appId: "1:29493644662:web:ef243cd03837d127f27e57"
+  projectId: "realcheck-my"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let allData = [];
-let currentCategory = "All";
+let currentCat = "All";
 
-/* 打开关闭 */
+/* OPEN CLOSE */
 window.openForm = ()=> modal.style.display="flex";
-window.closeForm = ()=> modal.style.display="none";
+window.onclick = e=>{ if(e.target.id==="modal") modal.style.display="none"; }
 
-/* 点击外面关闭 */
-window.onclick = e=>{
-  if(e.target.id==="modal") closeForm();
-}
-
-/* ESC关闭 */
-window.onkeydown = e=>{
-  if(e.key==="Escape") closeForm();
-}
-
-/* 添加评论 */
+/* ADD */
 window.addReview = async ()=>{
-  let name = nameInput.value;
-  let comment = commentInput.value;
-  let category = categoryInput.value;
-  let rating = ratingInput.value;
+  let name=nameInput.value;
+  let comment=commentInput.value;
+  let rating=ratingInput.value;
+  let category=categoryInput.value;
 
-  if(!name || !comment) return;
+  if(!name||!comment) return;
 
   await addDoc(collection(db,"reviews"),{
-    name, comment,
-    category,
-    rating:Number(rating)
+    name,comment,rating:Number(rating),category
   });
 
-  nameInput.value="";
-  commentInput.value="";
-  closeForm();
-  loadReviews();
+  modal.style.display="none";
+  load();
 }
 
-/* 分类点击 */
-window.setCategory = function(cat, el){
-  currentCategory = cat;
-
-  document.querySelectorAll(".cat").forEach(c=>c.classList.remove("active"));
+/* FILTER */
+window.setCat = (c,el)=>{
+  currentCat=c;
+  document.querySelectorAll(".cat").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
-
   applyFilter();
 }
 
-/* 搜索+分类一起 */
-window.applyFilter = function(){
-  let q = search.value.toLowerCase();
+window.applyFilter = ()=>{
+  let q=search.value.toLowerCase();
 
   let filtered = allData.filter(d=>{
-    let matchText = d.name.toLowerCase().includes(q);
-    let matchCat = currentCategory==="All" || !d.category || d.category===currentCategory;
-    return matchText && matchCat;
+    return (currentCat==="All"||d.category===currentCat)
+    && d.name.toLowerCase().includes(q);
   });
 
-  render(filtered);
+  renderList(filtered);
 }
 
-/* 渲染 */
-function render(data){
+/* LIST */
+function renderList(data){
   list.innerHTML="";
+  detail.style.display="none";
+  list.style.display="block";
 
-  let grouped = {};
+  let grouped={};
+
   data.forEach(d=>{
     if(!grouped[d.name]) grouped[d.name]=[];
     grouped[d.name].push(d);
   });
 
   for(let name in grouped){
-    let items = grouped[name];
-    let avg = (items.reduce((a,b)=>a+b.rating,0)/items.length).toFixed(1);
+    let items=grouped[name];
+    let avg=(items.reduce((a,b)=>a+b.rating,0)/items.length).toFixed(1);
 
-    let div = document.createElement("div");
+    let div=document.createElement("div");
     div.className="card";
-    div.innerHTML = `
-      <b>${name}</b><br>
-      ⭐ ${avg} (${items.length})
-      <br><br>
-      ${items.map(i=>`- ${i.comment}`).join("<br>")}
-    `;
+    div.innerHTML=`<b>${name}</b><br>⭐ ${avg} (${items.length})`;
+
+    div.onclick=()=>openDetail(name,items);
+
     list.appendChild(div);
   }
 }
 
-/* 加载 */
-async function loadReviews(){
-  let snap = await getDocs(collection(db,"reviews"));
-  allData = snap.docs.map(d=>d.data());
+/* DETAIL */
+window.openDetail = (name,items)=>{
+  list.style.display="none";
+  detail.style.display="block";
+
+  detail.innerHTML = `
+    <button onclick="back()">← Back</button>
+    <h2>${name}</h2>
+    <p>⭐ ${(items.reduce((a,b)=>a+b.rating,0)/items.length).toFixed(1)}</p>
+    ${items.map(i=>`
+      <div class="card">
+        ${i.comment}<br>
+        👍 <span onclick="like(this)">0</span>
+      </div>
+    `).join("")}
+  `;
+}
+
+window.back = ()=>{
+  detail.style.display="none";
+  list.style.display="block";
+}
+
+/* LIKE */
+window.like = (el)=>{
+  el.innerText = Number(el.innerText)+1;
+}
+
+/* LOAD */
+async function load(){
+  let snap=await getDocs(collection(db,"reviews"));
+  allData=snap.docs.map(d=>d.data());
   applyFilter();
 }
 
-loadReviews();
+load();
 </script>
 
 </body>
