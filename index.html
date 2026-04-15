@@ -21,15 +21,6 @@ input { padding:10px; width:100%; margin:5px 0; }
 <h1>RealCheck MY</h1>
 <p>Real reviews for places & services in Malaysia</p>
 
-<h3>Popular Places</h3>
-
-<div class="card">
-    <b>Ah Ming Curry Mee</b><br>
-    ⭐ 4.3 | RM12
-</div>
-
-<hr>
-
 <h3>Leave a Review</h3>
 
 <input id="name" placeholder="Place name">
@@ -41,22 +32,55 @@ input { padding:10px; width:100%; margin:5px 0; }
 
 </div>
 
-<script>
-function addReview() {
-    let name = document.getElementById("name").value;
-    let comment = document.getElementById("comment").value;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    if(name === "" || comment === "") return;
+const firebaseConfig = {
+  apiKey: "AIzaSyAyhdcyUeUB9lNehaUPjSSFBxM04pJx36k",
+  authDomain: "realcheck-my.firebaseapp.com",
+  projectId: "realcheck-my",
+  storageBucket: "realcheck-my.firebasestorage.app",
+  messagingSenderId: "29493644662",
+  appId: "1:29493644662:web:ef243cd03837d127f27e57"
+};
 
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 加载已有评论
+async function loadReviews() {
+  const querySnapshot = await getDocs(collection(db, "reviews"));
+  document.getElementById("reviews").innerHTML = "";
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
     let div = document.createElement("div");
     div.className = "card";
-    div.innerHTML = "<b>" + name + "</b><br>" + comment;
-
+    div.innerHTML = "<b>" + data.name + "</b><br>" + data.comment;
     document.getElementById("reviews").appendChild(div);
-
-    document.getElementById("name").value = "";
-    document.getElementById("comment").value = "";
+  });
 }
+
+// 添加评论
+window.addReview = async function () {
+  let name = document.getElementById("name").value;
+  let comment = document.getElementById("comment").value;
+
+  if (!name || !comment) return;
+
+  await addDoc(collection(db, "reviews"), {
+    name: name,
+    comment: comment
+  });
+
+  document.getElementById("name").value = "";
+  document.getElementById("comment").value = "";
+
+  loadReviews();
+};
+
+// 页面加载时读取数据
+loadReviews();
 </script>
 
 </body>
