@@ -3,76 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RealCheck MY | Reviews for Places & Services in Malaysia</title>
+<title>RealCheck MY</title>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #f8fafc;
-}
-
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-}
-
-h1 {
-    text-align: center;
-}
-
-.subtitle {
-    text-align: center;
-    color: #555;
-    margin-bottom: 20px;
-}
-
-.search-box {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-input {
-    padding: 10px;
-    width: 60%;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 8px;
-    background: black;
-    color: white;
-    cursor: pointer;
-}
-
-.categories {
-    display: flex;
-    justify-content: space-around;
-    margin: 20px 0;
-}
-
-.category {
-    background: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-}
-
-.list {
-    margin-top: 30px;
-}
-
-.card {
-    background: white;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-}
+body { font-family: Arial; background:#f8fafc; margin:0; }
+.container { max-width:900px; margin:auto; padding:20px; }
+.card { background:white; padding:15px; margin:10px 0; border-radius:10px; }
+button { padding:10px; background:black; color:white; border:none; border-radius:8px; }
+input { padding:10px; width:100%; margin:5px 0; }
 </style>
 </head>
 
@@ -81,44 +19,45 @@ button {
 <div class="container">
 
 <h1>RealCheck MY</h1>
-<p class="subtitle">Find trusted reviews for places & services in Malaysia</p>
+<p>Real reviews for places & services in Malaysia</p>
 
-<div class="search-box">
-    <input placeholder="Search food, beauty, massage...">
-    <button>Search</button>
+<h3>Popular Places</h3>
+
+<div class="card">
+    <b>Ah Ming Curry Mee</b><br>
+    ⭐ 4.3 | RM12
 </div>
 
-<div class="categories">
-    <div class="category">🍜 Food</div>
-    <div class="category">💅 Beauty</div>
-    <div class="category">💆 Wellness</div>
-    <div class="category">💇 Hair</div>
-</div>
+<hr>
 
-<div class="list">
-    <h3>Popular Places</h3>
+<h3>Leave a Review</h3>
 
-    <div class="card">
-        <b>Ah Ming Curry Mee</b><br>
-        ⭐ 4.3 | RM12<br>
-        <small>Good for quick lunch</small>
-    </div>
+<input id="name" placeholder="Place name">
+<input id="comment" placeholder="Your review">
+<button onclick="addReview()">Submit</button>
 
-    <div class="card">
-        <b>Relax Spa JB</b><br>
-        ⭐ 4.5 | RM90<br>
-        <small>Clean and comfortable</small>
-    </div>
-
-    <div class="card">
-        <b>Glow Beauty Facial</b><br>
-        ⭐ 4.0 | RM120<br>
-        <small>Good service, slight upselling</small>
-    </div>
+<h3>Reviews</h3>
+<div id="reviews"></div>
 
 </div>
 
-</div>
+<script>
+function addReview() {
+    let name = document.getElementById("name").value;
+    let comment = document.getElementById("comment").value;
+
+    if(name === "" || comment === "") return;
+
+    let div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = "<b>" + name + "</b><br>" + comment;
+
+    document.getElementById("reviews").appendChild(div);
+
+    document.getElementById("name").value = "";
+    document.getElementById("comment").value = "";
+}
+</script>
 
 </body>
 </html>
