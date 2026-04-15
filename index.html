@@ -1,35 +1,137 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RealCheck MY</title>
 
 <style>
-body { font-family: Arial; background:#f8fafc; margin:0; }
-.container { max-width:900px; margin:auto; padding:20px; }
-.card { background:white; padding:15px; margin:10px 0; border-radius:10px; }
-button { padding:10px; background:black; color:white; border:none; border-radius:8px; }
-input { padding:10px; width:100%; margin:5px 0; }
+body { margin:0; font-family:Arial; background:#f6f7f9; }
+
+/* NAV */
+.nav {
+  background:white;
+  padding:15px 30px;
+  display:flex;
+  justify-content:space-between;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.logo { font-weight:bold; font-size:20px; }
+
+.search {
+  padding:10px;
+  width:300px;
+  border-radius:20px;
+  border:1px solid #ddd;
+}
+
+/* CATEGORY */
+.categories {
+  display:flex;
+  gap:10px;
+  padding:20px;
+}
+
+.cat {
+  background:white;
+  padding:10px 15px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+/* LIST */
+.container { padding:20px; max-width:900px; margin:auto; }
+
+.card {
+  background:white;
+  padding:15px;
+  margin-bottom:15px;
+  border-radius:12px;
+}
+
+.rating { color:orange; }
+
+/* BUTTON */
+button {
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:black;
+  color:white;
+  cursor:pointer;
+}
+
+/* FLOAT BTN */
+.float {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+}
+
+/* MODAL */
+.modal {
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.box {
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:300px;
+}
+
+input, select {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+}
 </style>
 </head>
 
 <body>
 
+<div class="nav">
+  <div class="logo">RealCheck MY</div>
+  <input class="search" id="search" placeholder="Search..." oninput="filter()">
+</div>
+
+<div class="categories">
+  <div class="cat">🍜 Food</div>
+  <div class="cat">💅 Beauty</div>
+  <div class="cat">💆 Wellness</div>
+  <div class="cat">💇 Hair</div>
+</div>
+
 <div class="container">
+  <div id="list"></div>
+</div>
 
-<h1>RealCheck MY</h1>
-<p>Real reviews for places & services in Malaysia</p>
+<div class="float">
+  <button onclick="openForm()">+ Review</button>
+</div>
 
-<h3>Leave a Review</h3>
+<div class="modal" id="modal">
+  <div class="box">
+    <h3>Add Review</h3>
+    <input id="name" placeholder="Place name">
+    <input id="comment" placeholder="Review">
+    
+    <select id="rating">
+      <option value="5">⭐⭐⭐⭐⭐</option>
+      <option value="4">⭐⭐⭐⭐</option>
+      <option value="3">⭐⭐⭐</option>
+      <option value="2">⭐⭐</option>
+      <option value="1">⭐</option>
+    </select>
 
-<input id="name" placeholder="Place name">
-<input id="comment" placeholder="Your review">
-<button onclick="addReview()">Submit</button>
-
-<h3>Reviews</h3>
-<div id="reviews"></div>
-
+    <button onclick="addReview()">Submit</button>
+  </div>
 </div>
 
 <script type="module">
@@ -48,38 +150,72 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 加载已有评论
-async function loadReviews() {
-  const querySnapshot = await getDocs(collection(db, "reviews"));
-  document.getElementById("reviews").innerHTML = "";
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    let div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = "<b>" + data.name + "</b><br>" + data.comment;
-    document.getElementById("reviews").appendChild(div);
-  });
+let allData = [];
+
+window.openForm = function() {
+  document.getElementById("modal").style.display = "flex";
 }
 
-// 添加评论
-window.addReview = async function () {
+window.addReview = async function() {
   let name = document.getElementById("name").value;
   let comment = document.getElementById("comment").value;
+  let rating = document.getElementById("rating").value;
 
-  if (!name || !comment) return;
+  if(!name || !comment) return;
 
   await addDoc(collection(db, "reviews"), {
-    name: name,
-    comment: comment
+    name,
+    comment,
+    rating: Number(rating)
   });
 
-  document.getElementById("name").value = "";
-  document.getElementById("comment").value = "";
-
+  document.getElementById("modal").style.display = "none";
   loadReviews();
-};
+}
 
-// 页面加载时读取数据
+function render(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  let grouped = {};
+
+  data.forEach(d=>{
+    if(!grouped[d.name]) grouped[d.name]=[];
+    grouped[d.name].push(d);
+  });
+
+  for(let name in grouped){
+    let items = grouped[name];
+
+    let avg = items.reduce((a,b)=>a+b.rating,0)/items.length;
+    avg = avg.toFixed(1);
+
+    let div = document.createElement("div");
+    div.className="card";
+
+    div.innerHTML = `
+      <b>${name}</b><br>
+      ⭐ ${avg} (${items.length} reviews)
+      <br><br>
+      ${items.map(i=>`- ${i.comment}`).join("<br>")}
+    `;
+
+    list.appendChild(div);
+  }
+}
+
+async function loadReviews(){
+  const snap = await getDocs(collection(db,"reviews"));
+  allData = snap.docs.map(d=>d.data());
+  render(allData);
+}
+
+window.filter = function(){
+  let q = document.getElementById("search").value.toLowerCase();
+  let filtered = allData.filter(d=>d.name.toLowerCase().includes(q));
+  render(filtered);
+}
+
 loadReviews();
 </script>
 
